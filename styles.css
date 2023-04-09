@@ -1,0 +1,156 @@
+@import url('./global.css');
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 50px 20px;
+  display: grid;
+  place-items: center;
+}
+
+.upload-file {
+  width: 70%;
+  margin-bottom: 0;
+}
+
+#audio-file {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.file-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  color: #fff;
+}
+
+.file-form label {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #404040;
+  background: #303030;
+  text-align: center;
+  border-radius: 4px;
+  box-sizing: border-box;
+  padding: 25px;
+  transition: .2s;
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  font-family: 'VT323', monospace;
+  font-size: 2rem;
+  text-align: center;
+}
+
+.audio-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.play-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.volume-controls {
+  display: flex;
+  align-items: center;
+  margin: 15px;
+}
+
+.volume-controls input[type="range"] {
+  width: 150px;
+  margin: 0 10px;
+  height: 5px;
+  outline: none;
+}
+
+.volume-controls input[type="range"]::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.volume-controls i {
+  font-size: 2rem;
+  color: #3c3c3c;
+}
+
+.cut-controls h2 {
+  font-family: 'VT323', monospace;
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.cut-form {
+  display: flex;
+  margin-bottom: 30px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.time-box {
+  display: grid;
+  place-items: center;
+}
+
+.cut-form label {
+  margin-right: 10px;
+}
+
+.cut-form input[type="number"] {
+  margin-right: 10px;
+  padding: 5px;
+  font-size: 1.5rem;
+  text-align: center;
+  background-color: transparent;
+  border: 1px solid #3c3c3c;
+  border-radius: 5px;
+  outline: none;
+}
+
+.cut-form button {
+  padding: 10px;
+  font-size: 1.5rem;
+  border-radius: 5px;
+  outline: none;
+}
+
+.export-controls {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+}
+
+.export-controls h2 {
+  font-family: 'VT323', monospace;
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.export-controls button {
+  padding: 10px;
+  font-size: 1.5rem;
+  border-radius: 5px;
+  outline: none;
+}
