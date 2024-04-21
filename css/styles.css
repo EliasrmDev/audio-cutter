@@ -1,16 +1,49 @@
 @import url('./global.css');
+@import url('./audioControls.css');
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #11191f;
+  }
+}
+@media (prefers-color-scheme: light) {
+  body {
+    background: #d1d1d1;
+  }
+}
+
+* {
+  font-size: 1.125rem;
+}
+
+*:focus-visible {
+  outline: 3px solid #8B4513;
+  outline-offset: 0.125rem;
+}
+
+.hide {
+  display: none;
+}
 
 .container {
   max-width: 800px;
   margin: 0 auto;
   padding: 50px 20px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
 }
 
 .upload-file {
   width: 70%;
+  max-width: 300px;
   margin-bottom: 0;
+}
+
+.upload-file.completed .file-form label{
+  font-size: 1rem;
+  padding: 10px;
 }
 
 #audio-file {
@@ -24,6 +57,11 @@
   opacity: 0;
   width: 100%;
   height: 100%;
+}
+
+#audio-file:focus-visible ~ #file-title {
+  outline: 3px solid #8B4513;
+  outline-offset: 0.125rem;
 }
 
 .file-form {
@@ -52,50 +90,14 @@ h1 {
   font-family: 'VT323', monospace;
   font-size: 2rem;
   text-align: center;
-}
-
-.audio-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.play-controls {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.volume-controls {
-  display: flex;
-  align-items: center;
-  margin: 15px;
-}
-
-.volume-controls input[type="range"] {
-  width: 150px;
-  margin: 0 10px;
-  height: 5px;
-  outline: none;
-}
-
-.volume-controls input[type="range"]::-moz-range-thumb {
-  width: 15px;
-  height: 15px;
-  cursor: pointer;
-  border-radius: 50%;
-}
-
-.volume-controls i {
-  font-size: 2rem;
-  color: #3c3c3c;
+  width: 100%;
 }
 
 .cut-controls h2 {
   font-family: 'VT323', monospace;
   font-size: 2rem;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .cut-form {
@@ -118,12 +120,19 @@ h1 {
 .cut-form input[type="number"] {
   margin-right: 10px;
   padding: 5px;
-  font-size: 1.5rem;
+  font-size: 1rem;
   text-align: center;
   background-color: transparent;
   border: 1px solid #3c3c3c;
   border-radius: 5px;
   outline: none;
+  max-width: 150px;
+  text-indent: 10px;
+}
+
+.cut-form input[type="number"]:focus-visible {
+  outline: 3px solid #8B4513;
+  outline-offset: 0.125rem;
 }
 
 .cut-form button {
@@ -131,13 +140,19 @@ h1 {
   font-size: 1.5rem;
   border-radius: 5px;
   outline: none;
+  max-width: 200px;
+}
+
+.cut-form button:focus-visible {
+  outline: 3px solid #8B4513;
+  outline-offset: 0.125rem;
 }
 
 .export-controls {
   display: flex;
-  flex-direction: column;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 20px;
 }
 
@@ -146,6 +161,11 @@ h1 {
   font-size: 2rem;
   text-align: center;
   margin-bottom: 30px;
+  width: 100%;
+}
+
+.export-controls input[type="text"] {
+  max-width: 500px;
 }
 
 .export-controls button {
@@ -153,4 +173,5 @@ h1 {
   font-size: 1.5rem;
   border-radius: 5px;
   outline: none;
+  max-width: 200px;
 }
