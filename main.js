@@ -1,16 +1,15 @@
 // Get DOM Elements
-const audioElement = document.getElementById('audio');
-const playButton = document.getElementById('play-button');
-const stopButton = document.getElementById('stop-button');
-const volumeRange = document.getElementById('volume-range');
-const cutStartInput = document.getElementById('start-time');
-const cutEndInput = document.getElementById('end-time');
-const cutButton = document.getElementById('cut-button');
-const exportButton = document.getElementById('export-button');
-const cuttedAudios = document.querySelector('.cutted-audios');
+const audioElement = document.querySelector('#audio');
+const playButton = document.querySelector('#play-button');
+const volumeRange = document.querySelector('#volume-range');
+const cutStartInput = document.querySelector('#start-time');
+const cutEndInput = document.querySelector('#end-time');
+const cutButton = document.querySelector('#cut-button');
+const exportButton = document.querySelector('#export-button');
 const audioCutted = document.querySelector('#audio-cutted');
 const namedAudioInput = document.querySelector('#named-audio')
 const fileTitle = document.querySelector('#file-title')
+const cuttedAudios = document.querySelector('.cutted-audios');
 
 let audioSize;
 let audioDuration;
@@ -18,20 +17,19 @@ let costPerSecond;
 let file;
 
 // Audio Context
-const audioCtx = new AudioContext();
+let audioCtx;
 let audioSource;
 
 // Play Audio
-function playAudio() {
-  audioElement.pause();
-  audioElement.currentTime = 0;
-  audioElement.play();
-}
-
-// Stop Audio
-function stopAudio() {
-  audioElement.pause();
-  audioElement.currentTime = 0;
+function playAudio(e) {
+  const targetBtn = e.currentTarget;
+  if (targetBtn.getAttribute('status') === 'play') {
+    audioElement.pause();
+    targetBtn.setAttribute('status', 'pause')
+  } else {
+    audioElement.play();
+    targetBtn.setAttribute('status', 'play')
+  }
 }
 
 // Change Volume
@@ -74,14 +72,14 @@ function exportAudio() {
 
 // Event Listeners
 playButton.addEventListener('click', playAudio);
-stopButton.addEventListener('click', stopAudio);
 volumeRange.addEventListener('input', changeVolume);
 cutButton.addEventListener('click', cutAudio);
 exportButton.addEventListener('click', exportAudio);
 
 // Load Audio
-const audioFileInput = document.getElementById('audio-file');
+const audioFileInput = document.querySelector('#audio-file');
 audioFileInput.addEventListener('change', function () {
+  audioCtx = new AudioContext();
   file = audioFileInput.files[0];
   if (!file) {
     return;
@@ -106,11 +104,12 @@ audioFileInput.addEventListener('change', function () {
 
 
       costPerSecond = audioSize/audioDuration;
-      cutEndInput.value = audioDuration
-      playButton.disabled = false
-      stopButton.disabled = false
-      cutButton.disabled  = false
-      fileTitle.textContent = file.name
+      cutEndInput.value = audioDuration;
+      playButton.disabled = false;
+      playButton.setAttribute('status', 'pause');
+      cutButton.disabled  = false;
+      fileTitle.textContent = file.name;
+      audioFileInput.closest('.upload-file').classList.add('completed')
     });
   };
 
