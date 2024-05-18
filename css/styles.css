@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
 @import url('./global.css');
 @import url('./audioControls.css');
 
@@ -23,6 +24,10 @@
 
 .hide {
   display: none;
+}
+
+h1, h2, h3 {
+  font-family: 'Montserrat', 'VT323', monospace;
 }
 
 .container {
@@ -87,14 +92,12 @@
 }
 
 h1 {
-  font-family: 'VT323', monospace;
   font-size: 2rem;
   text-align: center;
   width: 100%;
 }
 
 .cut-controls h2 {
-  font-family: 'VT323', monospace;
   font-size: 2rem;
   text-align: center;
   margin-bottom: 20px;
@@ -157,7 +160,6 @@ h1 {
 }
 
 .export-controls h2 {
-  font-family: 'VT323', monospace;
   font-size: 2rem;
   text-align: center;
   margin-bottom: 30px;
