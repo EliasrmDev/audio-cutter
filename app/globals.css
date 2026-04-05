@@ -1,0 +1,221 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Custom scrollbar for better dark theme integration */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background-secondary;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-md;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-border-hover;
+  }
+
+  /* Focus styles for accessibility */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  /* Audio element styling */
+  audio {
+    @apply w-full;
+  }
+
+  audio::-webkit-media-controls-panel {
+    @apply bg-background-secondary;
+  }
+
+  /* Custom range input styles */
+  input[type="range"] {
+    @apply appearance-none bg-transparent cursor-pointer;
+  }
+
+  input[type="range"]::-webkit-slider-track {
+    @apply bg-border rounded-full h-2;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    @apply appearance-none bg-primary rounded-full h-4 w-4 shadow-lg;
+  }
+
+  input[type="range"]::-moz-range-track {
+    @apply bg-border rounded-full h-2 border-none;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    @apply bg-primary rounded-full h-4 w-4 border-none shadow-lg;
+  }
+}
+
+@layer components {
+  /* Waveform container styles */
+  .waveform-container {
+    @apply relative overflow-hidden rounded-lg bg-background-secondary border border-border;
+  }
+
+  .waveform-container::before {
+    content: '';
+    @apply absolute inset-0 bg-waveform-glow opacity-0 transition-opacity;
+  }
+
+  .waveform-container:hover::before {
+    @apply opacity-100;
+  }
+
+  /* Upload area styles */
+  .upload-area {
+    @apply relative border-2 border-dashed border-border rounded-lg p-8 text-center transition-all;
+  }
+
+  .upload-area.dragover {
+    @apply border-primary bg-primary/5;
+  }
+
+  .upload-area:hover {
+    @apply border-border-hover bg-background-tertiary;
+  }
+
+  /* Button gradient effect */
+  .btn-primary {
+    @apply bg-primary text-white relative overflow-hidden transition-all;
+  }
+
+  .btn-primary::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent;
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+
+  .btn-primary:hover::before {
+    transform: translateX(100%);
+  }
+
+  /* Audio controls styling */
+  .audio-controls {
+    @apply flex items-center gap-4 p-4 bg-background-secondary rounded-lg border border-border;
+  }
+
+  /* Time display styling */
+  .time-display {
+    @apply font-mono text-sm text-foreground-secondary tabular-nums;
+  }
+
+  /* Waveform selection styling */
+  .selection-handle {
+    @apply absolute top-0 w-1 bg-primary cursor-ew-resize z-10;
+    @apply before:absolute before:top-0 before:w-3 before:h-full before:-left-1 before:cursor-ew-resize;
+  }
+
+  .selection-handle:hover {
+    @apply bg-primary-hover shadow-lg shadow-primary/50;
+  }
+
+  /* ── WaveSurfer v7 overrides ─────────────────────────────── */
+
+  /* Container that WaveSurfer renders its shadow into */
+  .wavesurfer-container {
+    @apply w-full select-none;
+  }
+
+  /* WaveSurfer renders a <div> with overflow:hidden internally;
+     Allow horizontal scroll for zoomed views */
+  .wavesurfer-container > div {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: thin;
+    scrollbar-color: #3c3c3c #111111;
+  }
+
+  .wavesurfer-container > div::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .wavesurfer-container > div::-webkit-scrollbar-track {
+    background: #111111;
+  }
+
+  .wavesurfer-container > div::-webkit-scrollbar-thumb {
+    background: #3c3c3c;
+    border-radius: 3px;
+  }
+
+  .wavesurfer-container > div::-webkit-scrollbar-thumb:hover {
+    background: #4c4c4c;
+  }
+
+  /* WaveSurfer region handles */
+  [data-resize="left"],
+  [data-resize="right"] {
+    background: rgba(224, 123, 57, 0.9) !important;
+    width: 4px !important;
+    cursor: ew-resize !important;
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .animate-pulse-glow {
+    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 10px rgba(224, 123, 57, 0.3);
+    }
+    50% {
+      opacity: 0.8;
+      box-shadow: 0 0 20px rgba(224, 123, 57, 0.6);
+    }
+  }
+
+  /* Text selection */
+  .select-none {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply backdrop-blur-sm bg-background/80 border border-border/50;
+  }
+}
+
+/* Loading animation for waveform */
+@keyframes waveform-loading {
+  0% { height: 20%; }
+  25% { height: 60%; }
+  50% { height: 100%; }
+  75% { height: 40%; }
+  100% { height: 20%; }
+}
+
+.waveform-loading-bar {
+  animation: waveform-loading 1.2s ease-in-out infinite;
+}
+
+.waveform-loading-bar:nth-child(2) { animation-delay: 0.1s; }
+.waveform-loading-bar:nth-child(3) { animation-delay: 0.2s; }
+.waveform-loading-bar:nth-child(4) { animation-delay: 0.3s; }
+.waveform-loading-bar:nth-child(5) { animation-delay: 0.4s; }
