@@ -12,6 +12,7 @@ import { WaveformEditor } from '@/components/WaveformEditor'
 import { WaveformControls } from '@/components/WaveformControls'
 import { TimelineMarkers } from '@/components/TimelineMarkers'
 import type { ExportResultFile } from '@/types/export'
+import { SyncManager } from '@/components/SyncManager'
 
 export default function AudioCutterPage() {
   const audioState = useAudioState()
@@ -137,7 +138,8 @@ export default function AudioCutterPage() {
 
         {/* Footer */}
         <footer className="text-center text-sm text-foreground-muted border-t border-border pt-6">
-          <p>Audio Cutter • Professional audio editing in your browser</p>
+          <SyncManager />
+          <p className="mt-4">Audio Cutter • Professional audio editing in your browser</p>
           <p className="mt-1">
             Built with Next.js, Web Audio API, and modern web technologies
           </p>

@@ -1,17 +1,35 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { OfflineIndicator } from '@/components/OfflineIndicator'
 
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap'
 })
 
+export const viewport: Viewport = {
+  themeColor: '#0a0a0a',
+  width: 'device-width',
+  initialScale: 1,
+  minimumScale: 1,
+}
+
 export const metadata: Metadata = {
   title: 'Audio Cutter - Professional Audio Editing Tool',
   description: 'Cut and edit audio files with precision. Support for MP3, WAV, and more formats with advanced waveform visualization.',
   keywords: ['audio', 'cutter', 'editor', 'mp3', 'wav', 'waveform'],
   authors: [{ name: 'Elias' }],
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Audio Cutter',
+  },
+  icons: {
+    apple: '/apple-touch-icon.png',
+    icon: [{ url: '/icon-192.png', sizes: '192x192' }, { url: '/icon-512.png', sizes: '512x512' }],
+  },
   creator: 'Elias',
   publisher: 'Elias',
   openGraph: {
@@ -65,6 +83,7 @@ export default function RootLayout({
           </div>
         </div>
         <div id="modal-root" />
+        <OfflineIndicator />
       </body>
     </html>
   )
