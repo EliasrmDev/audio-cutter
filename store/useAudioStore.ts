@@ -44,6 +44,10 @@ interface AudioStore {
   isProcessing: boolean
   processingProgress: number
 
+  // Selection mode
+  selectionMode: 'manual' | 'fixed'
+  fixedDuration: number | null
+
   // Audio context and buffer
   audioContext: AudioContext | null
   audioBuffer: AudioBuffer | null
@@ -66,6 +70,8 @@ interface AudioStore {
   // Selection actions
   setSelection: (selection: AudioSelection | null) => void
   updateSelection: (updates: Partial<AudioSelection>) => void
+  setSelectionMode: (mode: 'manual' | 'fixed') => void
+  setFixedDuration: (duration: number | null) => void
 
   // Segment actions
   addSegment: (segment: AudioSegment) => void
@@ -131,6 +137,9 @@ export const useAudioStore = create<AudioStore>()(
       isProcessing: false,
       processingProgress: 0,
 
+      selectionMode: 'manual' as const,
+      fixedDuration: null,
+
       audioContext: null,
       audioBuffer: null,
       audioUrl: null,
@@ -182,6 +191,10 @@ export const useAudioStore = create<AudioStore>()(
 
       // Selection actions
       setSelection: (selection) => set({ selection }),
+
+      setSelectionMode: (selectionMode) => set({ selectionMode }),
+
+      setFixedDuration: (fixedDuration) => set({ fixedDuration }),
 
       updateSelection: (updates) => set(state => {
         if (!state.selection) return state
@@ -326,6 +339,8 @@ export const useAudioStore = create<AudioStore>()(
           audioUrl: null,
           waveformData: null,
           selection: null,
+          selectionMode: 'manual',
+          fixedDuration: null,
           activeSegment: null,
           isWaveformReady: false,
           state: 'idle',
@@ -435,3 +450,5 @@ export const useExportSettings = () => useAudioStore(state => state.exportSettin
 export const useExportMetadata = () => useAudioStore(state => state.exportMetadata)
 export const useExportStatus = () => useAudioStore(state => state.exportStatus)
 export const useError = () => useAudioStore(state => state.error)
+export const useSelectionMode = () => useAudioStore(state => state.selectionMode)
+export const useFixedDuration = () => useAudioStore(state => state.fixedDuration)

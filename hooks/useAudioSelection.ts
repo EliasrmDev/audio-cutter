@@ -10,6 +10,8 @@ export interface UseAudioSelectionOptions {
   regionsPlugin: React.RefObject<RegionsPluginType | null>
   isWaveformReady: boolean
   duration: number
+  /** When non-null the selection is locked to this fixed size (in seconds) */
+  fixedDuration?: number | null
 }
 
 const REGION_ID = 'main-selection'
@@ -24,8 +26,13 @@ export function useAudioSelection({
   regionsPlugin,
   isWaveformReady,
   duration,
+  fixedDuration = null,
 }: UseAudioSelectionOptions) {
   const { selection, setSelection } = useAudioStore()
+
+  // Keep a stable ref to duration so callbacks don't stale-close over it
+  const durationRef = useRef(duration)
+  useEffect(() => { durationRef.current = duration }, [duration])
 
   // Track whether the current region update originated from the store
   // to avoid circular sync loops
@@ -46,10 +53,16 @@ export function useAudioSelection({
       existing?.remove()
       activeRegionRef.current = null
     } else {
+      const resizable = fixedDuration == null
       const existing = regions.getRegions().find(r => r.id === REGION_ID)
 
       if (existing) {
-        existing.setOptions({ start: selection.start, end: selection.end })
+        existing.setOptions({
+          start: selection.start,
+          end: selection.end,
+          drag: true,
+          resize: resizable,
+        })
       } else {
         const region = regions.addRegion({
           id: REGION_ID,
@@ -57,7 +70,7 @@ export function useAudioSelection({
           end: selection.end,
           color: REGION_COLOR,
           drag: true,
-          resize: true,
+          resize: resizable,
           minLength: 0.1,
         })
         activeRegionRef.current = region
@@ -68,7 +81,7 @@ export function useAudioSelection({
     requestAnimationFrame(() => {
       updatingFromStoreRef.current = false
     })
-  }, [selection, isWaveformReady, regionsPlugin])
+  }, [selection, isWaveformReady, regionsPlugin, fixedDuration])
 
   // ── Sync region → store ───────────────────────────────────────────────
   useEffect(() => {
@@ -149,14 +162,33 @@ export function useAudioSelection({
     [duration, setSelection]
   )
 
-  return { clearSelection, setSelectionRange }
+  /**
+   * Move the fixed-duration window by `delta` seconds.
+   * No-op in manual mode. Reads live state to avoid stale closures.
+   */
+  const shiftWindow = useCallback((delta: number) => {
+    const { fixedDuration: fd, selection: sel, setSelection: setS } = useAudioStore.getState()
+    const totalDur = durationRef.current
+    if (!sel || !fd) return
+    const newStart = Math.max(0, Math.min(totalDur - fd, sel.start + delta))
+    setS({ start: newStart, end: newStart + fd, duration: fd })
+  }, [])
+
+  return { clearSelection, setSelectionRange, shiftWindow }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 function commitRegionToStore(region: Region, duration: number) {
-  const { setSelection } = useAudioStore.getState()
-  const start = Math.max(0, Math.min(duration, region.start))
-  const end = Math.max(start + 0.1, Math.min(duration, region.end))
+  const { setSelection, fixedDuration } = useAudioStore.getState()
+  let start = Math.max(0, Math.min(duration, region.start))
+  let end: number
+  if (fixedDuration !== null && fixedDuration > 0) {
+    // Clamp start so the fixed window always fits within the audio
+    start = Math.min(start, Math.max(0, duration - fixedDuration))
+    end = start + fixedDuration
+  } else {
+    end = Math.max(start + 0.1, Math.min(duration, region.end))
+  }
   setSelection({ start, end, duration: end - start })
 }

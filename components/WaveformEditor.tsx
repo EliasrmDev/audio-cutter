@@ -4,8 +4,9 @@ import React, { useCallback, useEffect } from 'react'
 import { clsx } from 'clsx'
 import { useWaveformContext } from '@/contexts/WaveformContext'
 import { useAudioSelection } from '@/hooks/useAudioSelection'
-import { usePlayer, useAudioFile, useSelection } from '@/store/useAudioStore'
+import { usePlayer, useAudioFile, useSelection, useSelectionMode, useFixedDuration, useAudioStore } from '@/store/useAudioStore'
 import { formatTime } from '@/lib/audioUtils'
+import { DurationSelector } from './DurationSelector'
 import type { BaseComponentProps } from '@/types/audio'
 
 export interface WaveformEditorProps extends BaseComponentProps {
@@ -40,12 +41,15 @@ export function WaveformEditor({
   const audioFile = useAudioFile()
   const player = usePlayer()
   const selection = useSelection()
+  const selectionMode = useSelectionMode()
+  const fixedDuration = useFixedDuration()
   const duration = player.duration || audioFile?.duration || 0
 
-  const { clearSelection } = useAudioSelection({
+  const { clearSelection, shiftWindow } = useAudioSelection({
     regionsPlugin,
     isWaveformReady: isReady,
     duration,
+    fixedDuration,
   })
 
   // ── Keyboard shortcuts ─────────────────────────────────────────────────
@@ -63,15 +67,25 @@ export function WaveformEditor({
 
         case 'ArrowLeft': {
           e.preventDefault()
-          const step = e.shiftKey ? 0.1 : 5
-          seekTo(Math.max(0, player.currentTime - step))
+          const { selectionMode: mode } = useAudioStore.getState()
+          if (mode === 'fixed') {
+            shiftWindow(e.shiftKey ? -0.5 : -1)
+          } else {
+            const step = e.shiftKey ? 0.1 : 5
+            seekTo(Math.max(0, player.currentTime - step))
+          }
           break
         }
 
         case 'ArrowRight': {
           e.preventDefault()
-          const step = e.shiftKey ? 0.1 : 5
-          seekTo(Math.min(duration, player.currentTime + step))
+          const { selectionMode: mode } = useAudioStore.getState()
+          if (mode === 'fixed') {
+            shiftWindow(e.shiftKey ? 0.5 : 1)
+          } else {
+            const step = e.shiftKey ? 0.1 : 5
+            seekTo(Math.min(duration, player.currentTime + step))
+          }
           break
         }
 
@@ -100,7 +114,7 @@ export function WaveformEditor({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [player.isPlaying, player.currentTime, duration, zoom, play, pause, seekTo, setZoom, clearSelection])
+  }, [player.isPlaying, player.currentTime, duration, zoom, play, pause, seekTo, setZoom, clearSelection, shiftWindow])
 
   // ── Ctrl + scroll → zoom ───────────────────────────────────────────────
   const handleWheel = useCallback(
@@ -146,6 +160,13 @@ export function WaveformEditor({
           {zoom} px/s
         </span>
       </div>
+
+      {/* ── Duration selector toolbar ────────────────────────────── */}
+      {isReady && (
+        <div className="flex items-center px-3 py-1.5 border-b border-border bg-background-tertiary">
+          <DurationSelector />
+        </div>
+      )}
 
       {/* ── Loading indicator ─────────────────────────────────────── */}
       {!isReady && (
@@ -197,13 +218,13 @@ export function WaveformEditor({
         {(
           [
             ['Space', 'Play / Pause'],
-            ['← →', '±5 s'],
-            ['⇧ ← →', '±0.1 s'],
+            ['← →', selectionMode === 'fixed' ? 'Move window ±1 s' : '±5 s'],
+            ['⇧ ← →', selectionMode === 'fixed' ? 'Move window ±0.5 s' : '±0.1 s'],
             ['+ −', 'Zoom'],
             ['Ctrl + scroll', 'Zoom'],
             ['M', 'Add marker'],
             ['Esc', 'Clear selection'],
-          ] as const
+          ] as [string, string][]
         ).map(([key, desc]) => (
           <span key={key} className="inline-flex items-center gap-1.5 text-[11px] text-foreground-muted">
             <kbd className="inline-flex items-center px-1.5 py-0.5 rounded border border-border bg-background font-mono text-[10px] text-foreground-secondary leading-none">

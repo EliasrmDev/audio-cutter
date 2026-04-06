@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Audio Cutter - Professional Audio Editing',
     description: 'Cut and edit audio files with precision using our advanced web-based tool.',
-    url: 'https://cutter.elias.codes',
+    url: 'https://cutter.eliasrm.dev',
     siteName: 'Audio Cutter',
     type: 'website',
     images: [

@@ -19,6 +19,11 @@ export type { AudioCutterProps } from './AudioCutter'
 export { AudioExporter } from './AudioExporter'
 export type { AudioExporterProps } from './AudioExporter'
 
+export { DurationSelector } from './DurationSelector'
+export { FormatConverter } from './FormatConverter'
+export { CompressionSettings } from './CompressionSettings'
+export type { CompressionSettingsProps } from './CompressionSettings'
+
 // WaveSurfer-based waveform editor components
 export { WaveformEditor } from './WaveformEditor'
 export type { WaveformEditorProps } from './WaveformEditor'
