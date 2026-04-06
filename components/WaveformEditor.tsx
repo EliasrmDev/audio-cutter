@@ -1,13 +1,14 @@
 'use client'
 
-import React, { useCallback, useEffect } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { clsx } from 'clsx'
 import { useWaveformContext } from '@/contexts/WaveformContext'
 import { useAudioSelection } from '@/hooks/useAudioSelection'
 import { usePlayer, useAudioFile, useSelection, useSelectionMode, useFixedDuration, useAudioStore } from '@/store/useAudioStore'
 import { formatTime } from '@/lib/audioUtils'
 import { DurationSelector } from './DurationSelector'
-import { WaveformSelectionOverlay } from './WaveformSelectionOverlay'
+import { DesktopSelectionLayer } from './waveform/desktop/DesktopSelectionLayer'
+import { MobileSelectionLayer, MobileSelectionControls } from './waveform/mobile/MobileSelectionLayer'
 import type { BaseComponentProps } from '@/types/audio'
 
 export interface WaveformEditorProps extends BaseComponentProps {
@@ -46,6 +47,16 @@ export function WaveformEditor({
   const fixedDuration = useFixedDuration()
   const duration = player.duration || audioFile?.duration || 0
 
+  // ── Device detection ──────────────────────────────────────────────────
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(pointer: coarse)')
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
   const { clearSelection, shiftWindow } = useAudioSelection({
     regionsPlugin,
     isWaveformReady: isReady,
@@ -68,24 +79,46 @@ export function WaveformEditor({
 
         case 'ArrowLeft': {
           e.preventDefault()
-          const { selectionMode: mode } = useAudioStore.getState()
+          const state = useAudioStore.getState()
+          const { selectionMode: mode, selection: sel } = state
           if (mode === 'fixed') {
             shiftWindow(e.shiftKey ? -0.5 : -1)
+          } else if (sel) {
+            if (e.shiftKey) {
+              // Shift+←: move selection start left (expand/shrink)
+              const newStart = Math.max(0, sel.start - 0.1)
+              state.setSelection({ start: newStart, end: sel.end, duration: sel.end - newStart })
+            } else {
+              // ←: move entire selection left 1 s
+              const len = sel.end - sel.start
+              const newStart = Math.max(0, sel.start - 1)
+              state.setSelection({ start: newStart, end: newStart + len, duration: len })
+            }
           } else {
-            const step = e.shiftKey ? 0.1 : 5
-            seekTo(Math.max(0, player.currentTime - step))
+            seekTo(Math.max(0, player.currentTime - (e.shiftKey ? 0.1 : 5)))
           }
           break
         }
 
         case 'ArrowRight': {
           e.preventDefault()
-          const { selectionMode: mode } = useAudioStore.getState()
+          const state = useAudioStore.getState()
+          const { selectionMode: mode, selection: sel } = state
           if (mode === 'fixed') {
             shiftWindow(e.shiftKey ? 0.5 : 1)
+          } else if (sel) {
+            if (e.shiftKey) {
+              // Shift+→: move selection end right (expand/shrink)
+              const newEnd = Math.min(duration, sel.end + 0.1)
+              state.setSelection({ start: sel.start, end: newEnd, duration: newEnd - sel.start })
+            } else {
+              // →: move entire selection right 1 s
+              const len = sel.end - sel.start
+              const newStart = Math.min(duration - len, sel.start + 1)
+              state.setSelection({ start: newStart, end: newStart + len, duration: len })
+            }
           } else {
-            const step = e.shiftKey ? 0.1 : 5
-            seekTo(Math.min(duration, player.currentTime + step))
+            seekTo(Math.min(duration, player.currentTime + (e.shiftKey ? 0.1 : 5)))
           }
           break
         }
@@ -199,8 +232,11 @@ export function WaveformEditor({
         onWheel={handleWheel}
         aria-hidden="true"
       >
-        <WaveformSelectionOverlay />
+        {isMobile ? <MobileSelectionLayer /> : <DesktopSelectionLayer />}
       </div>
+
+      {/* ── Mobile accessible selection controls ─────────────────── */}
+      {isMobile && <MobileSelectionControls />}
 
       {/* ── Timeline ─────────────────────────────────────────────── */}
       <div
@@ -221,8 +257,8 @@ export function WaveformEditor({
         {(
           [
             ['Space', 'Play / Pause'],
-            ['← →', selectionMode === 'fixed' ? 'Move window ±1 s' : '±5 s'],
-            ['⇧ ← →', selectionMode === 'fixed' ? 'Move window ±0.5 s' : '±0.1 s'],
+            ['← →', selectionMode === 'fixed' ? 'Move window ±1 s' : selection ? 'Move selection ±1 s' : '±5 s'],
+            ['⇧ ← →', selectionMode === 'fixed' ? 'Move window ±0.5 s' : selection ? 'Resize endpoints ±0.1 s' : '±0.1 s'],
             ['+ −', 'Zoom'],
             ['Ctrl + scroll', 'Zoom'],
             ['M', 'Add marker'],
