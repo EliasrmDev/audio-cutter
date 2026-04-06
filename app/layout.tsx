@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
+import { AppNav } from '@/components/AppNav'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -78,6 +79,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.className} min-h-screen bg-background text-foreground antialiased`}>
         <div className="relative flex min-h-screen flex-col">
+          <AppNav />
           <div className="flex-1">
             {children}
           </div>

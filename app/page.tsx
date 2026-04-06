@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useCallback } from 'react'
-import Link from 'next/link'
 import { useAudioStore, useAudioState, useError } from '@/store/useAudioStore'
 import {
   AudioUploader,
@@ -33,36 +32,8 @@ export default function AudioCutterPage() {
   }, [])
 
   return (
-    <main className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-foreground">
-            Audio Cutter
-          </h1>
-          <p className="text-lg text-foreground-secondary">
-            Professional audio editing tool with advanced waveform visualization
-          </p>
-        </div>
-
-        {/* Quick tools nav */}
-        <nav aria-label="Herramientas" className="flex justify-center">
-          <Link
-            href="/convert-audio"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border
-              bg-background-secondary text-sm text-foreground-secondary
-              hover:border-primary/60 hover:text-foreground transition-colors
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M17 3L21 7L17 11" />
-              <path d="M21 7H9" />
-              <path d="M7 21L3 17L7 13" />
-              <path d="M3 17H15" />
-            </svg>
-            Convertir formato de audio
-          </Link>
-        </nav>
+    <main className="container mx-auto px-4 py-6 max-w-6xl">
+      <div className="space-y-6">
 
         {/* Global error display */}
         {error && (
@@ -77,7 +48,7 @@ export default function AudioCutterPage() {
         )}
 
         {/* Main Content Area */}
-        <div className="space-y-8">
+        <div className="space-y-6">
           {/* Upload Section */}
           <section>
             <AudioUploader onFileLoaded={handleFileLoaded} />

@@ -23,6 +23,7 @@ export { DurationSelector } from './DurationSelector'
 export { FormatConverter } from './FormatConverter'
 export { CompressionSettings } from './CompressionSettings'
 export type { CompressionSettingsProps } from './CompressionSettings'
+export { AppNav } from './AppNav'
 
 // WaveSurfer-based waveform editor components
 export { WaveformEditor } from './WaveformEditor'
