@@ -15,8 +15,14 @@ export interface UseAudioSelectionOptions {
 }
 
 const REGION_ID = 'main-selection'
-const REGION_COLOR = 'rgba(224, 123, 57, 0.25)'
-const REGION_BORDER_COLOR = 'rgba(224, 123, 57, 0.8)'
+/**
+ * WaveSurfer region is kept for structural bookkeeping (clearSelection, event
+ * de-reg) but rendered invisible — the visual fill lives in the overlay layers
+ * (MobileSelectionLayer / DesktopSelectionLayer) which render in the same React
+ * cycle as the handle pills, eliminating the 1-frame lag during resize drags.
+ */
+const REGION_COLOR         = 'transparent'
+const REGION_BORDER_COLOR  = 'transparent'
 
 /**
  * Manages the audio selection region.

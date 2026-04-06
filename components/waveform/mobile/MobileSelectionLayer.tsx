@@ -39,6 +39,9 @@ const HANDLE_HIT_W  = 48   // px — fat touch targets
 const HANDLE_PILL_W = 6    // px
 /** Seconds moved per nudge button tap */
 const NUDGE_STEP    = 0.1
+/** Selection fill — matches the original WaveSurfer region colours */
+const FILL_BG      = 'rgba(224, 123, 57, 0.25)'
+const FILL_BORDER   = 'rgba(224, 123, 57, 0.8)'
 
 // ── MobileSelectionLayer ──────────────────────────────────────────────────────
 
@@ -84,6 +87,23 @@ export function MobileSelectionLayer() {
     >
       {selection !== null && startPct !== null && endPct !== null && (
         <>
+          {/*
+           * ── Selection fill ──────────────────────────────────────────────
+           * Rendered in the same React cycle as the handle pills.
+           * This eliminates the 1-frame lag that WaveSurfer's useEffect-driven
+           * region had during resize drags (region moved 1 paint after handles).
+           */}
+          <div
+            className="absolute inset-y-0 pointer-events-none"
+            style={{
+              left:        `${startPct}%`,
+              width:       `${endPct - startPct}%`,
+              background:  FILL_BG,
+              borderLeft:  `1px solid ${FILL_BORDER}`,
+              borderRight: `1px solid ${FILL_BORDER}`,
+            }}
+          />
+
           <MobileHandle
             pct={startPct}
             side="left"

@@ -28,6 +28,9 @@ import { formatTime } from '@/lib/audioUtils'
 const HANDLE_PILL_W = 5    // px
 /** Total invisible hit-zone width around each handle */
 const HANDLE_HIT_W  = 32   // px
+/** Selection fill — matches original WaveSurfer region colours */
+const FILL_BG     = 'rgba(224, 123, 57, 0.25)'
+const FILL_BORDER  = 'rgba(224, 123, 57, 0.8)'
 
 export function DesktopSelectionLayer() {
   const { waveContainerRef, isReady, seekTo, zoom } = useWaveformContext()
@@ -75,6 +78,22 @@ export function DesktopSelectionLayer() {
     >
       {selection !== null && startPct !== null && endPct !== null && (
         <>
+          {/*
+           * ── Selection fill ─────────────────────────────────────────
+           * Same-cycle rendering as handles eliminates the useEffect lag
+           * that WaveSurfer's region had during resize drags.
+           */}
+          <div
+            className="absolute inset-y-0 pointer-events-none"
+            style={{
+              left:        `${startPct}%`,
+              width:       `${endPct - startPct}%`,
+              background:  FILL_BG,
+              borderLeft:  `1px solid ${FILL_BORDER}`,
+              borderRight: `1px solid ${FILL_BORDER}`,
+            }}
+          />
+
           <DesktopHandle
             pct={startPct}
             side="left"
