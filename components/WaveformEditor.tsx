@@ -7,6 +7,7 @@ import { useAudioSelection } from '@/hooks/useAudioSelection'
 import { usePlayer, useAudioFile, useSelection, useSelectionMode, useFixedDuration, useAudioStore } from '@/store/useAudioStore'
 import { formatTime } from '@/lib/audioUtils'
 import { DurationSelector } from './DurationSelector'
+import { WaveformSelectionOverlay } from './WaveformSelectionOverlay'
 import type { BaseComponentProps } from '@/types/audio'
 
 export interface WaveformEditorProps extends BaseComponentProps {
@@ -190,14 +191,16 @@ export function WaveformEditor({
       <div
         ref={waveContainerRef}
         className={clsx(
-          'w-full overflow-x-auto wavesurfer-container',
+          'relative w-full overflow-x-auto wavesurfer-container',
           'transition-opacity duration-300',
           !isReady && 'opacity-0'
         )}
         style={{ height, minHeight: height }}
         onWheel={handleWheel}
         aria-hidden="true"
-      />
+      >
+        <WaveformSelectionOverlay />
+      </div>
 
       {/* ── Timeline ─────────────────────────────────────────────── */}
       <div

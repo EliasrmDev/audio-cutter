@@ -60,8 +60,8 @@ export function useAudioSelection({
         existing.setOptions({
           start: selection.start,
           end: selection.end,
-          drag: true,
-          resize: resizable,
+          drag: false,
+          resize: false,
         })
       } else {
         const region = regions.addRegion({
@@ -69,8 +69,8 @@ export function useAudioSelection({
           start: selection.start,
           end: selection.end,
           color: REGION_COLOR,
-          drag: true,
-          resize: resizable,
+          drag: false,
+          resize: false,
           minLength: 0.1,
         })
         activeRegionRef.current = region
