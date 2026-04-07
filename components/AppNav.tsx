@@ -68,9 +68,8 @@ export function AppNav() {
   const toggleMenu = useCallback(() => setMenuOpen(v => !v), [])
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/90 backdrop-blur-sm">
+    <header ref={navRef} className="sticky top-0 z-40 w-full border-b border-border bg-background/90 backdrop-blur-sm">
       <nav
-        ref={navRef}
         aria-label="Navegación principal"
         className="container mx-auto flex items-center justify-between px-4 h-14 max-w-6xl"
       >
