@@ -31,6 +31,8 @@ export interface UseMobileSelectionReturn {
   onPointerMove:   (e: React.PointerEvent<HTMLElement>) => void
   onPointerUp:     (e: React.PointerEvent<HTMLElement>) => void
   onPointerCancel: (e: React.PointerEvent<HTMLElement>) => void
+  /** Abort the active drag without committing — called when pinch starts */
+  cancelDrag:      () => void
 }
 
 export function useMobileSelection({
@@ -39,7 +41,7 @@ export function useMobileSelection({
   isReady,
   seekTo,
 }: UseMobileSelectionOptions): UseMobileSelectionReturn {
-  const { startDrag, moveDrag, endDrag } = useSelectionLogic({
+  const { startDrag, moveDrag, endDrag, cancelDrag } = useSelectionLogic({
     containerRef,
     duration,
     isReady,
@@ -71,5 +73,5 @@ export function useMobileSelection({
     endDrag(e.clientX, e.pointerId)
   }, [endDrag])
 
-  return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel }
+  return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, cancelDrag }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { clsx } from 'clsx'
 import { useWaveformContext } from '@/contexts/WaveformContext'
 import { useAudioSelection } from '@/hooks/useAudioSelection'
@@ -9,6 +9,7 @@ import { formatTime } from '@/lib/audioUtils'
 import { DurationSelector } from './DurationSelector'
 import { DesktopSelectionLayer } from './waveform/desktop/DesktopSelectionLayer'
 import { MobileSelectionLayer, MobileSelectionControls } from './waveform/mobile/MobileSelectionLayer'
+import { clampZoom, scrollAfterZoom, ZOOM_DEFAULT } from './waveform/shared/zoomUtils'
 import type { BaseComponentProps } from '@/types/audio'
 
 export interface WaveformEditorProps extends BaseComponentProps {
@@ -16,7 +17,7 @@ export interface WaveformEditorProps extends BaseComponentProps {
   height?: number
 }
 
-const ZOOM_STEP = 20
+const ZOOM_STEP             = 20
 const ZOOM_WHEEL_SENSITIVITY = 2.5
 
 /**
@@ -39,6 +40,9 @@ export function WaveformEditor({
     pause,
     seekTo,
   } = useWaveformContext()
+
+  // Pending rAF for scroll-centering after zoom — cancelled on rapid events
+  const wheelRafRef = useRef<number | null>(null)
 
   const audioFile = useAudioFile()
   const player = usePlayer()
@@ -64,6 +68,29 @@ export function WaveformEditor({
     fixedDuration,
   })
 
+  // ── Zoom helper — centers zoom on the visible viewport midpoint ───────────
+  const applyKeyboardZoom = useCallback((newZoom: number) => {
+    const clamped   = clampZoom(newZoom)
+    const container = waveContainerRef.current
+    if (!container || clamped === zoom) { setZoom(clamped); return }
+
+    const oldScrollLeft = container.scrollLeft
+    const oldZoom       = zoom
+    const rect          = container.getBoundingClientRect()
+    // Center on the visible midpoint so the user doesn't lose their place
+    const anchorX       = rect.left + rect.width / 2
+
+    setZoom(clamped)
+
+    // Adjust scroll after WaveSurfer re-renders the canvas at the new width.
+    // rAF fires after layout so scrollWidth is already updated.
+    if (wheelRafRef.current !== null) cancelAnimationFrame(wheelRafRef.current)
+    wheelRafRef.current = requestAnimationFrame(() => {
+      wheelRafRef.current = null
+      scrollAfterZoom(container, anchorX, oldScrollLeft, oldZoom, clamped)
+    })
+  }, [zoom, setZoom, waveContainerRef])
+
   // ── Keyboard shortcuts ─────────────────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -85,11 +112,9 @@ export function WaveformEditor({
             shiftWindow(e.shiftKey ? -0.5 : -1)
           } else if (sel) {
             if (e.shiftKey) {
-              // Shift+←: move selection start left (expand/shrink)
               const newStart = Math.max(0, sel.start - 0.1)
               state.setSelection({ start: newStart, end: sel.end, duration: sel.end - newStart })
             } else {
-              // ←: move entire selection left 1 s
               const len = sel.end - sel.start
               const newStart = Math.max(0, sel.start - 1)
               state.setSelection({ start: newStart, end: newStart + len, duration: len })
@@ -108,11 +133,9 @@ export function WaveformEditor({
             shiftWindow(e.shiftKey ? 0.5 : 1)
           } else if (sel) {
             if (e.shiftKey) {
-              // Shift+→: move selection end right (expand/shrink)
               const newEnd = Math.min(duration, sel.end + 0.1)
               state.setSelection({ start: sel.start, end: newEnd, duration: newEnd - sel.start })
             } else {
-              // →: move entire selection right 1 s
               const len = sel.end - sel.start
               const newStart = Math.min(duration - len, sel.start + 1)
               state.setSelection({ start: newStart, end: newStart + len, duration: len })
@@ -123,15 +146,27 @@ export function WaveformEditor({
           break
         }
 
+        // Zoom in — only without Ctrl/Meta (let browser handle Ctrl+= natively)
         case '+':
         case '=':
+          if (e.ctrlKey || e.metaKey) break
           e.preventDefault()
-          setZoom(zoom + ZOOM_STEP)
+          applyKeyboardZoom(zoom + ZOOM_STEP)
           break
 
+        // Zoom out — only without Ctrl/Meta (let browser handle Ctrl+- natively)
         case '-':
+          if (e.ctrlKey || e.metaKey) break
           e.preventDefault()
-          setZoom(zoom - ZOOM_STEP)
+          applyKeyboardZoom(zoom - ZOOM_STEP)
+          break
+
+        // Reset zoom to default
+        case '0':
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault()
+            applyKeyboardZoom(ZOOM_DEFAULT)
+          }
           break
 
         case 'Escape':
@@ -148,16 +183,36 @@ export function WaveformEditor({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [player.isPlaying, player.currentTime, duration, zoom, play, pause, seekTo, setZoom, clearSelection, shiftWindow])
+  }, [player.isPlaying, player.currentTime, duration, zoom, play, pause, seekTo, applyKeyboardZoom, clearSelection, shiftWindow])
 
-  // ── Ctrl + scroll → zoom ───────────────────────────────────────────────
+  // ── Ctrl + scroll → zoom centred on cursor ────────────────────────────
   const handleWheel = useCallback(
     (e: React.WheelEvent<HTMLDivElement>) => {
       if (!e.ctrlKey && !e.metaKey) return
       e.preventDefault()
-      setZoom(zoom + (-e.deltaY > 0 ? ZOOM_WHEEL_SENSITIVITY : -ZOOM_WHEEL_SENSITIVITY) * 10)
+
+      const delta    = (-e.deltaY > 0 ? ZOOM_WHEEL_SENSITIVITY : -ZOOM_WHEEL_SENSITIVITY) * 10
+      const newZoom  = clampZoom(zoom + delta)
+      if (newZoom === zoom) return
+
+      const container = waveContainerRef.current
+      if (!container) { setZoom(newZoom); return }
+
+      const anchorX       = e.clientX
+      const oldScrollLeft = container.scrollLeft
+      const oldZoom       = zoom
+
+      setZoom(newZoom)
+
+      // Adjust scroll after WaveSurfer redraws at the new zoom level.
+      // Cancel any pending adjustment from a prior wheel event.
+      if (wheelRafRef.current !== null) cancelAnimationFrame(wheelRafRef.current)
+      wheelRafRef.current = requestAnimationFrame(() => {
+        wheelRafRef.current = null
+        scrollAfterZoom(container, anchorX, oldScrollLeft, oldZoom, newZoom)
+      })
     },
-    [zoom, setZoom]
+    [zoom, setZoom, waveContainerRef]
   )
 
   if (!audioFile) return null
@@ -259,8 +314,9 @@ export function WaveformEditor({
             ['Space', 'Play / Pause'],
             ['← →', selectionMode === 'fixed' ? 'Move window ±1 s' : selection ? 'Move selection ±1 s' : '±5 s'],
             ['⇧ ← →', selectionMode === 'fixed' ? 'Move window ±0.5 s' : selection ? 'Resize endpoints ±0.1 s' : '±0.1 s'],
-            ['+ −', 'Zoom'],
-            ['Ctrl + scroll', 'Zoom'],
+            ['+ −', 'Zoom waveform'],
+            ['0', 'Reset zoom'],
+            ['Ctrl + scroll', 'Zoom on cursor'],
             ['M', 'Add marker'],
             ['Esc', 'Clear selection'],
           ] as [string, string][]

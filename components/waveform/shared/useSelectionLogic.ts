@@ -43,13 +43,19 @@ export interface UseSelectionLogicReturn {
   /** Mutable ref holding the active drag type — read only inside event/rAF handlers */
   dragTypeRef: React.MutableRefObject<DragType | null>
   /** Begin a new drag interaction at the given screen X */
-  startDrag: (clientX: number, pointerId: number) => void
+  startDrag:  (clientX: number, pointerId: number) => void
   /** Update the drag with a new pointer position (call on every move event) */
-  moveDrag:  (clientX: number, pointerId: number) => void
+  moveDrag:   (clientX: number, pointerId: number) => void
   /** Commit or discard the drag on pointer release */
-  endDrag:   (clientX: number, pointerId: number) => void
+  endDrag:    (clientX: number, pointerId: number) => void
+  /**
+   * Abort the active drag without committing any selection change.
+   * Use this when a multi-touch pinch begins mid-drag to prevent
+   * the selection from jumping.
+   */
+  cancelDrag: () => void
   /** Returns CSS cursor for a given screen X (safe to call during render) */
-  getCursor: (clientX: number) => string
+  getCursor:  (clientX: number) => string
 }
 
 export function useSelectionLogic({
@@ -182,5 +188,16 @@ export function useSelectionLogic({
     dragTypeRef.current = null
   }, [containerRef])
 
-  return { dragTypeRef, startDrag, moveDrag, endDrag, getCursor }
+  // ── Drag cancel ───────────────────────────────────────────────────────────
+
+  const cancelDrag = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+    dragRef.current     = null
+    dragTypeRef.current = null
+  }, [])
+
+  return { dragTypeRef, startDrag, moveDrag, endDrag, cancelDrag, getCursor }
 }
